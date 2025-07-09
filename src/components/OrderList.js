@@ -78,7 +78,7 @@ export default function OrderList() {
                     return (
                         <ListItem key={order.id} divider sx={{flexDirection: "column", alignItems: "stretch"}}>
                             <ListItemText
-                                primary={`Ordered by: ${order.orderedBy}`}
+                                primary={`Party Name: ${order.orderedBy}`}
                                 secondary={
                                     <>
                                         <Typography variant="subtitle2">Items:</Typography>
