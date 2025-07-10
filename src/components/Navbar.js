@@ -34,7 +34,7 @@ export default function Navbar() {
 
     return (
         <>
-            <AppBar position="static" sx={{backgroundColor: "#2f76d2"}}>
+            <AppBar position="sticky" sx={{mt: "env(safe-area-inset-top)"}}>
                 <Toolbar sx={{display: "flex", justifyContent: "space-between"}}>
                     <Box sx={{display: "flex", alignItems: "center"}}>
                         <img

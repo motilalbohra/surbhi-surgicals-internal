@@ -13,6 +13,7 @@ import {
     MenuItem,
     Grid,
 } from "@mui/material";
+import {format} from "date-fns";
 
 const initialPeople = ["Navin", "Upendra", "Kishan", "Rajendra", "Bunty", "Anshita", "Motilal"];
 
@@ -81,7 +82,16 @@ export default function OrderList() {
                                 primary={`Party Name: ${order.orderedBy}`}
                                 secondary={
                                     <>
-                                        <Typography variant="subtitle2">Items:</Typography>
+                                        <Typography variant="subtitle2" sx={{fontSize: "1rem"}}>
+                                            Order Placed:{" "}
+                                            {order.timestamp?.toDate
+                                                ? format(order.timestamp.toDate(), "dd MMM yyyy hh:mm a")
+                                                : "N/A"}
+                                        </Typography>
+
+                                        <Typography variant="subtitle2" sx={{fontSize: "1rem"}}>
+                                            Items:
+                                        </Typography>
                                         <ul style={{margin: 0, paddingLeft: 20}}>
                                             {order.items?.map((item, index) => (
                                                 <li key={index}>
