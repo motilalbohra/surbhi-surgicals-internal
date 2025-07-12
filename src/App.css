@@ -11,6 +11,10 @@ body {
   padding-top: env(safe-area-inset-top);
 }
 
+.MuiDrawer-paper {
+  padding-top: env(safe-area-inset-top); /* Fix for Drawer overlapping notch */
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;

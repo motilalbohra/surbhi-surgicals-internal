@@ -14,11 +14,10 @@ import InventoryForm from "./components/InventoryForm";
 import InventoryList from "./components/InventoryList";
 
 function App() {
-    // ✅ Apply status bar fix for Android notch/safe area
     useEffect(() => {
         if (Capacitor.getPlatform() === "android") {
-            StatusBar.setOverlaysWebView({overlay: false});
-            StatusBar.setStyle({style: Style.Dark}); // or Style.Light if navbar is dark
+            StatusBar.setOverlaysWebView({overlay: false}); // Key line to prevent notch overlay
+            StatusBar.setStyle({style: Style.Dark}); // Optional: Light if using dark background
         }
     }, []);
     return (
