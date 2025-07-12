@@ -1,17 +1,16 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {
     AppBar,
-    Box,
     Toolbar,
     Typography,
-    Button,
     IconButton,
+    Box,
     Drawer,
     List,
     ListItem,
     ListItemText,
+    Button,
     useMediaQuery,
-    useTheme,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import {Link as RouterLink} from "react-router-dom";
@@ -25,31 +24,67 @@ const navLinks = [
 
 export default function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+    const [isCompact, setIsCompact] = useState(false);
 
-    const toggleDrawer = () => {
-        setDrawerOpen(!drawerOpen);
-    };
+    const isSmallScreen = useMediaQuery("(max-width: 680px)");
+
+    const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+
+    // Dynamically decide layout by screen size and logo + buttons fitting logic
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            // Trigger compact if screen is too narrow for logo + 4 buttons
+            setIsCompact(width < 700); // You can adjust this value as needed
+        };
+        handleResize(); // on load
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     return (
         <>
-            <AppBar position="sticky" sx={{mt: "env(safe-area-inset-top)"}}>
-                <Toolbar sx={{display: "flex", justifyContent: "space-between"}}>
-                    <Box sx={{display: "flex", alignItems: "center"}}>
-                        <img
-                            src="/surbhi_surgical_logo.jpeg" // If it's inside public folder
-                            alt="Surbhi Surgical"
-                            style={{height: 40, marginRight: 10}}
+            <AppBar
+                position="sticky"
+                sx={{
+                    paddingTop: "env(safe-area-inset-top)",
+                    backgroundColor: "#1976d2",
+                }}
+            >
+                <Toolbar sx={{justifyContent: "space-between", gap: 2}}>
+                    {/* Logo + Title */}
+                    <Box sx={{display: "flex", alignItems: "center", minWidth: 0}}>
+                        <Box
+                            component="img"
+                            src="/surbhi_surgical_logo.jpeg"
+                            alt="Logo"
+                            sx={{
+                                height: 36,
+                                width: 36,
+                                borderRadius: 1,
+                                mr: 1,
+                                flexShrink: 0,
+                            }}
                         />
-                        <Typography variant="h6" sx={{fontWeight: "bold", color: "#fff"}}>
+                        <Typography
+                            variant="h6"
+                            noWrap
+                            sx={{
+                                fontWeight: 600,
+                                color: "white",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                            }}
+                        >
                             Surbhi Surgical
                         </Typography>
                     </Box>
 
-                    {isMobile ? (
+                    {/* Buttons or Drawer */}
+                    {isCompact || isSmallScreen ? (
                         <>
-                            <IconButton color="inherit" edge="start" onClick={toggleDrawer}>
+                            <IconButton color="inherit" edge="end" onClick={toggleDrawer}>
                                 <MenuIcon />
                             </IconButton>
                             <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
@@ -65,7 +100,7 @@ export default function Navbar() {
                             </Drawer>
                         </>
                     ) : (
-                        <Box>
+                        <Box sx={{display: "flex", flexWrap: "nowrap"}}>
                             {navLinks.map((item) => (
                                 <Button
                                     key={item.path}
@@ -74,9 +109,10 @@ export default function Navbar() {
                                     sx={{
                                         color: "#fff",
                                         fontWeight: "bold",
-                                        mx: 1,
                                         textDecoration: "underline",
-                                        fontSize: "1rem",
+                                        fontSize: "0.9rem",
+                                        whiteSpace: "nowrap",
+                                        mx: 0.5,
                                     }}
                                 >
                                     {item.label.toUpperCase()}

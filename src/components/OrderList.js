@@ -1,25 +1,16 @@
+// OrderList.jsx
 import React, {useEffect, useState} from "react";
 import {collection, onSnapshot, updateDoc, doc, deleteDoc, serverTimestamp} from "firebase/firestore";
 import db from "../firebase";
-import {
-    Typography,
-    Paper,
-    List,
-    ListItem,
-    ListItemText,
-    Checkbox,
-    TextField,
-    Button,
-    MenuItem,
-    Grid,
-} from "@mui/material";
-import {format} from "date-fns";
+import {Typography, Paper, List, Button} from "@mui/material";
+import OrderItem from "./OrderItem";
 
-const initialPeople = ["Navin", "Upendra", "Kishan", "Rajendra", "Bunty", "Anshita", "Motilal"];
+const initialPeople = ["Navin", "Upendra", "Kishan", "Rajendra", "Bunty", "Anshita", "Motilal", "Add New"];
 
 export default function OrderList() {
     const [orders, setOrders] = useState([]);
     const [names, setNames] = useState(initialPeople);
+    const [sortNewestFirst, setSortNewestFirst] = useState(true);
 
     useEffect(() => {
         const unsub = onSnapshot(collection(db, "orders"), (snapshot) => {
@@ -67,131 +58,57 @@ export default function OrderList() {
         }
     };
 
+    const sortFn = (a, b) => {
+        const dateA = a.timestamp?.toDate?.() || new Date(0);
+        const dateB = b.timestamp?.toDate?.() || new Date(0);
+        return sortNewestFirst ? dateB - dateA : dateA - dateB;
+    };
+
+    const completedOrders = orders.filter((o) => o.completed).sort(sortFn);
+    const pendingOrders = orders.filter((o) => !o.completed).sort(sortFn);
+
     return (
         <Paper sx={{p: {xs: 2, md: 3}}}>
             <Typography variant="h6" gutterBottom>
                 Order List
             </Typography>
+
+            <Button variant="outlined" sx={{mb: 2}} onClick={() => setSortNewestFirst((prev) => !prev)}>
+                Sort: {sortNewestFirst ? "Newest First" : "Oldest First"}
+            </Button>
+
+            <Typography variant="subtitle1" gutterBottom>
+                🕗 Pending Orders
+            </Typography>
             <List>
-                {orders.map((order) => {
-                    const disabled = order.completed;
+                {pendingOrders.map((order) => (
+                    <OrderItem
+                        key={order.id}
+                        order={order}
+                        names={names}
+                        setNames={setNames}
+                        handleUpdate={handleUpdate}
+                        handleComplete={handleComplete}
+                        handleSelectChange={handleSelectChange}
+                    />
+                ))}
+            </List>
 
-                    return (
-                        <ListItem key={order.id} divider sx={{flexDirection: "column", alignItems: "stretch"}}>
-                            <ListItemText
-                                primary={`Party Name: ${order.orderedBy}`}
-                                secondary={
-                                    <>
-                                        <Typography variant="subtitle2" sx={{fontSize: "1rem"}}>
-                                            Order Placed:{" "}
-                                            {order.timestamp?.toDate
-                                                ? format(order.timestamp.toDate(), "dd MMM yyyy hh:mm a")
-                                                : "N/A"}
-                                        </Typography>
-
-                                        <Typography variant="subtitle2" sx={{fontSize: "1rem"}}>
-                                            Items:
-                                        </Typography>
-                                        <ul style={{margin: 0, paddingLeft: 20}}>
-                                            {order.items?.map((item, index) => (
-                                                <li key={index}>
-                                                    {item.product} ({item.quantity})
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </>
-                                }
-                            />
-
-                            <Grid container spacing={1} alignItems="center" sx={{mt: 1}}>
-                                {/* Packing By */}
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <TextField
-                                        select
-                                        label="Packing By"
-                                        value={order.takenOutBy || ""}
-                                        onChange={(e) => handleSelectChange(order.id, "takenOutBy", e.target.value)}
-                                        fullWidth
-                                        disabled={disabled}
-                                    >
-                                        {names.map((name, idx) => (
-                                            <MenuItem key={idx} value={name}>
-                                                {name}
-                                            </MenuItem>
-                                        ))}
-                                    </TextField>
-                                </Grid>
-                                <Grid item>
-                                    <Checkbox
-                                        checked={order.takenOutChecked}
-                                        disabled={!order.takenOutBy || disabled}
-                                        onChange={(e) => handleUpdate(order.id, "takenOutChecked", e.target.checked)}
-                                    />
-                                </Grid>
-
-                                {/* Delivered By */}
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <TextField
-                                        select
-                                        label="Delivered By"
-                                        value={order.deliveredBy || ""}
-                                        onChange={(e) => handleSelectChange(order.id, "deliveredBy", e.target.value)}
-                                        fullWidth
-                                        disabled={!order.takenOutChecked || disabled}
-                                    >
-                                        {names.map((name, idx) => (
-                                            <MenuItem key={idx} value={name}>
-                                                {name}
-                                            </MenuItem>
-                                        ))}
-                                    </TextField>
-                                </Grid>
-                                <Grid item>
-                                    <Checkbox
-                                        checked={order.deliveredChecked}
-                                        disabled={!order.deliveredBy || disabled}
-                                        onChange={(e) => handleUpdate(order.id, "deliveredChecked", e.target.checked)}
-                                    />
-                                </Grid>
-
-                                {/* Signed Copy */}
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <TextField label="Signed Copy" value="" disabled fullWidth />
-                                </Grid>
-                                <Grid item>
-                                    <Checkbox
-                                        checked={order.signedCopyReceived || false}
-                                        disabled={!order.deliveredChecked || disabled}
-                                        onChange={(e) => handleUpdate(order.id, "signedCopyReceived", e.target.checked)}
-                                    />
-                                </Grid>
-
-                                {/* Complete Button */}
-                                <Grid item xs={12} sm={6} md={2}>
-                                    <Button
-                                        variant="contained"
-                                        fullWidth
-                                        sx={{
-                                            backgroundColor: order.completed ? "green" : "red",
-                                            "&:hover": {
-                                                backgroundColor: order.completed ? "green" : "darkred",
-                                            },
-                                        }}
-                                        onClick={() => handleComplete(order.id)}
-                                        disabled={
-                                            !order.takenOutChecked ||
-                                            !order.deliveredChecked ||
-                                            !order.signedCopyReceived ||
-                                            order.completed
-                                        }
-                                    >
-                                        {order.completed ? "Completed" : "Complete"}
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                        </ListItem>
-                    );
-                })}
+            <Typography variant="subtitle1" gutterBottom>
+                ✅ Completed Orders
+            </Typography>
+            <List>
+                {completedOrders.map((order) => (
+                    <OrderItem
+                        key={order.id}
+                        order={order}
+                        names={names}
+                        setNames={setNames}
+                        handleUpdate={handleUpdate}
+                        handleComplete={handleComplete}
+                        handleSelectChange={handleSelectChange}
+                    />
+                ))}
             </List>
         </Paper>
     );
