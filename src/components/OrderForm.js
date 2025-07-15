@@ -37,7 +37,7 @@ export default function OrderForm() {
 
         await addDoc(collection(db, "orders"), {
             orderedBy,
-            items,
+            items: items.map((item) => ({...item, available: 0})),
             takenOutChecked: false,
             deliveredChecked: false,
             signedCopyReceived: false,
