@@ -1,4 +1,3 @@
-// OrderList.jsx
 import React, {useEffect, useState} from "react";
 import {collection, onSnapshot, updateDoc, doc, deleteDoc, serverTimestamp} from "firebase/firestore";
 import db from "../firebase";
@@ -42,7 +41,7 @@ export default function OrderList() {
             } catch (err) {
                 console.error("Error deleting order:", err);
             }
-        }, 48 * 60 * 60 * 1000);
+        }, 60 * 1000);
     };
 
     const handleSelectChange = async (id, field, value) => {
@@ -107,6 +106,7 @@ export default function OrderList() {
                         handleUpdate={handleUpdate}
                         handleComplete={handleComplete}
                         handleSelectChange={handleSelectChange}
+                        // user={currentUser} // includes isAdmin or role
                     />
                 ))}
             </List>
